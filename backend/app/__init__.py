@@ -1,7 +1,7 @@
 """
 LuckyVista Flask Application Factory.
 """
-from flask import Flask
+from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -62,7 +62,15 @@ def create_app(config_name='default'):
     # Initialize extensions
     db.init_app(app)
     limiter.init_app(app)
-    CORS(app, origins=app.config['CORS_ORIGINS'], supports_credentials=True)
+    
+    # Configure CORS with credentials support
+    CORS(app, 
+         origins=app.config['CORS_ORIGINS'], 
+         supports_credentials=True,
+         allow_headers=['Content-Type', 'Authorization'],
+         expose_headers=['Content-Type'],
+         methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+    )
     
     # Configure logging
     setup_logging(app)
@@ -79,10 +87,20 @@ def create_app(config_name='default'):
     # Add security headers middleware
     @app.after_request
     def add_security_headers(response):
+        # Security headers
         response.headers['X-Frame-Options'] = 'DENY'
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
         response.headers['X-XSS-Protection'] = '1; mode=block'
+        
+        # CORS headers for credentials
+        origin = request.headers.get('Origin')
+        if origin in app.config['CORS_ORIGINS']:
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Credentials'] = 'true'
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        
         return response
     
     # Create database tables
