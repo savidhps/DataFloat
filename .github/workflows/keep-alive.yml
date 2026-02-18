@@ -25,7 +25,7 @@ jobs:
       - name: Ping Frontend
         run: |
           echo "🔄 Pinging frontend at $(date)"
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://datafloat.onrender.com)
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://datafloat-frontend.onrender.com)
           if [ $response -eq 200 ]; then
             echo "✅ Frontend is awake (HTTP $response)"
           else

@@ -25,7 +25,7 @@ class Config:
     SESSION_PERMANENT = os.getenv('SESSION_PERMANENT', 'False').lower() == 'true'
     PERMANENT_SESSION_LIFETIME = int(os.getenv('PERMANENT_SESSION_LIFETIME', '1800'))
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Strict'
+    SESSION_COOKIE_SAMESITE = 'None' if os.getenv('FLASK_ENV') == 'production' else 'Lax'
     SESSION_COOKIE_SECURE = os.getenv('FLASK_ENV') == 'production'
     
     # Security Configuration
@@ -45,7 +45,7 @@ class Config:
     MIN_MODEL_ACCURACY = float(os.getenv('MIN_MODEL_ACCURACY', '0.70'))
     
     # CORS Configuration
-    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:5000').split(',')
+    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://localhost:5173').split(',')
     
     @staticmethod
     def validate():
