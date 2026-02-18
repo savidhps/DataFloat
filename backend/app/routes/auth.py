@@ -127,12 +127,25 @@ def signin():
         # Determine redirect based on role
         redirect_url = '/admin/dashboard' if user.is_admin() else '/feedback'
         
-        return jsonify({
+        response = jsonify({
             'success': True,
             'message': 'Sign-in successful',
             'user': user.to_dict(),
             'redirect': redirect_url
-        }), 200
+        })
+        
+        # Explicitly set session cookie in response
+        response.set_cookie(
+            'luckyvista_session',
+            session_id,
+            httponly=True,
+            secure=True,
+            samesite='None',
+            max_age=1800,
+            path='/'
+        )
+        
+        return response, 200
     
     except Exception as e:
         current_app.logger.error(f"Signin error: {str(e)}")

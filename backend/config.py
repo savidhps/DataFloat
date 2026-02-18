@@ -27,6 +27,8 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'None' if os.getenv('FLASK_ENV') == 'production' else 'Lax'
     SESSION_COOKIE_SECURE = os.getenv('FLASK_ENV') == 'production'
+    SESSION_COOKIE_NAME = 'luckyvista_session'
+    SESSION_COOKIE_PATH = '/'
     
     # Security Configuration
     BCRYPT_WORK_FACTOR = int(os.getenv('BCRYPT_WORK_FACTOR', '12'))
