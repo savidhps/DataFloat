@@ -1,0 +1,38 @@
+name: Keep Render Service Awake
+
+on:
+  schedule:
+    # Runs every 13 minutes during active hours (6 AM - 11 PM UTC)
+    # This keeps usage under 2,000 minutes/month (GitHub free tier limit)
+    # ~2,000 minutes/month = fits free tier perfectly!
+    - cron: '*/13 6-23 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Backend Health Endpoint
+        run: |
+          echo "🔄 Pinging backend at $(date)"
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://luckyvista-backend.onrender.com/api/health)
+          if [ $response -eq 200 ]; then
+            echo "✅ Backend is awake (HTTP $response)"
+          else
+            echo "⚠️ Backend returned HTTP $response (may be waking up)"
+          fi
+
+      - name: Ping Frontend
+        run: |
+          echo "🔄 Pinging frontend at $(date)"
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://luckyvista-frontend.onrender.com)
+          if [ $response -eq 200 ]; then
+            echo "✅ Frontend is awake (HTTP $response)"
+          else
+            echo "⚠️ Frontend returned HTTP $response"
+          fi
+      
+      - name: Report Status
+        run: |
+          echo "✅ Keep-alive completed successfully"
+          echo "Next ping in 13 minutes"

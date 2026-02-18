@@ -205,6 +205,30 @@ The platform uses a machine learning model trained on 839,555 samples to detect 
 - `GET /api/admin/sentiment-distribution` - Emotion distribution
 - `GET /api/admin/rating-breakdown` - Rating statistics
 
+## Deployment
+
+### Deploy to Render (Recommended)
+
+**No Docker required!** Render deploys directly from GitHub.
+
+#### Quick Deploy:
+
+1. Push your code to GitHub
+2. Go to [Render Dashboard](https://dashboard.render.com)
+3. Click "New" → "Blueprint"
+4. Connect your repository
+5. Render will auto-detect `render.yaml` and deploy both services
+
+**Detailed instructions**: See [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)
+
+**Live URLs** (after deployment):
+- Frontend: `https://luckyvista-frontend.onrender.com`
+- Backend: `https://luckyvista-backend.onrender.com`
+
+### Local Development
+
+See installation instructions above for running locally.
+
 ## Configuration
 
 ### Backend (.env)
