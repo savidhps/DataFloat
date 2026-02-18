@@ -9,11 +9,9 @@ services:
     region: oregon
     plan: free
     branch: main
-    buildCommand: |
-      cd backend
-      pip install -r requirements.txt
-      python init_db.py
-    startCommand: cd backend && gunicorn app:app
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python init_db.py
+    startCommand: gunicorn app:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
@@ -33,11 +31,9 @@ services:
     region: oregon
     plan: free
     branch: main
-    buildCommand: |
-      cd frontend
-      npm install
-      npm run build
-    staticPublishPath: frontend/dist
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
     routes:
       - type: rewrite
         source: /*
