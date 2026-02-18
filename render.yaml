@@ -37,4 +37,7 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://datafloat-oln3.onrender.com/api
     autoDeploy: true

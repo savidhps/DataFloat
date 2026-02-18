@@ -15,7 +15,7 @@ jobs:
       - name: Ping Backend Health Endpoint
         run: |
           echo "🔄 Pinging backend at $(date)"
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://luckyvista-backend.onrender.com/api/health)
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://datafloat-oln3.onrender.com/api/health)
           if [ $response -eq 200 ]; then
             echo "✅ Backend is awake (HTTP $response)"
           else
@@ -25,7 +25,7 @@ jobs:
       - name: Ping Frontend
         run: |
           echo "🔄 Pinging frontend at $(date)"
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://luckyvista-frontend.onrender.com)
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://datafloat.onrender.com)
           if [ $response -eq 200 ]; then
             echo "✅ Frontend is awake (HTTP $response)"
           else
