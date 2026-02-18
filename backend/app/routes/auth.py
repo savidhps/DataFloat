@@ -76,7 +76,7 @@ def signup():
 
 
 @bp.route('/signin', methods=['POST'])
-@limiter.limit("5 per 15 minutes")
+@limiter.limit("20 per 15 minutes")
 def signin():
     """
     User sign-in endpoint.
