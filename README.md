@@ -207,23 +207,56 @@ The platform uses a machine learning model trained on 839,555 samples to detect 
 
 ## Deployment
 
-### Deploy to Render (Recommended)
+### Deploy to Render
 
 **No Docker required!** Render deploys directly from GitHub.
 
 #### Quick Deploy:
 
-1. Push your code to GitHub
-2. Go to [Render Dashboard](https://dashboard.render.com)
-3. Click "New" → "Blueprint"
-4. Connect your repository
-5. Render will auto-detect `render.yaml` and deploy both services
+1. **Push your code to GitHub**
+   ```bash
+   git add .
+   git commit -m "Deploy to Render"
+   git push origin master
+   ```
 
-**Detailed instructions**: See [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)
+2. **Create services on Render**
+   - Go to [Render Dashboard](https://dashboard.render.com)
+   - Click "New" → "Blueprint"
+   - Connect your GitHub repository
+   - Render will auto-detect `render.yaml` and create both services
 
-**Live URLs** (after deployment):
-- Frontend: `https://luckyvista-frontend.onrender.com`
-- Backend: `https://luckyvista-backend.onrender.com`
+3. **Configure environment variables** (if not using blueprint)
+   
+   **Backend Service:**
+   - Name: `luckyvista-backend`
+   - Environment: `Python`
+   - Build Command: `pip install -r requirements.txt && python init_db.py`
+   - Start Command: `gunicorn wsgi:app`
+   - Environment Variables:
+     - `SECRET_KEY`: (auto-generated)
+     - `ADMIN_PASSWORD`: `admin123`
+     - `FLASK_ENV`: `production`
+   
+   **Frontend Service:**
+   - Name: `luckyvista-frontend`
+   - Environment: `Static Site`
+   - Build Command: `npm install && npm run build`
+   - Publish Directory: `./dist`
+   - Environment Variables:
+     - `VITE_API_URL`: `https://your-backend-url.onrender.com/api`
+
+4. **Access your deployed app**
+   - Frontend: Your frontend Render URL (shows login page)
+   - Backend API: Your backend Render URL + `/api/health` (health check)
+   - Admin Login: `admin@gmail.com` / `admin123`
+
+#### Important Notes:
+
+- **Free Tier Sleep**: Services sleep after 15 minutes of inactivity
+- **Cold Start**: First request after sleep takes 30-60 seconds
+- **Keep-Alive**: GitHub Actions pings services every 13 minutes (6 AM - 11 PM UTC)
+- **Branch**: Make sure to use `master` or `main` branch (update `render.yaml` if needed)
 
 ### Local Development
 

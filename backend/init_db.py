@@ -28,10 +28,6 @@ def init_database():
         auth_service.seed_admin_user()
         
         print("Database initialization complete!")
-        print("\nSuper Admin Credentials:")
-        print("Email: admin@gmail.com")
-        print(f"Password: {app.config.get('ADMIN_PASSWORD', 'admin123')}")
-        print("\nYou can now run the application with: python app.py")
 
 
 if __name__ == '__main__':
