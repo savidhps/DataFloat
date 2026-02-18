@@ -4,6 +4,7 @@ Handles user registration, authentication, session management, and password oper
 """
 import bcrypt
 import secrets
+import jwt
 from datetime import datetime, timedelta
 from typing import Optional, Tuple
 from flask import current_app, session
@@ -17,6 +18,54 @@ class AuthenticationService:
     
     def __init__(self):
         self.validation_service = ValidationService()
+    
+    def generate_token(self, user: User) -> str:
+        """
+        Generate JWT token for authenticated user.
+        
+        Args:
+            user: Authenticated user
+        
+        Returns:
+            JWT token string
+        """
+        payload = {
+            'user_id': user.id,
+            'tenant_id': user.tenant,
+            'role': user.role,
+            'exp': datetime.utcnow() + timedelta(hours=24),
+            'iat': datetime.utcnow()
+        }
+        
+        token = jwt.encode(
+            payload,
+            current_app.config['SECRET_KEY'],
+            algorithm='HS256'
+        )
+        
+        return token
+    
+    def verify_token(self, token: str) -> Tuple[bool, Optional[dict]]:
+        """
+        Verify JWT token.
+        
+        Args:
+            token: JWT token string
+        
+        Returns:
+            Tuple of (is_valid, payload)
+        """
+        try:
+            payload = jwt.decode(
+                token,
+                current_app.config['SECRET_KEY'],
+                algorithms=['HS256']
+            )
+            return True, payload
+        except jwt.ExpiredSignatureError:
+            return False, None
+        except jwt.InvalidTokenError:
+            return False, None
     
     def register_user(self, name: str, email: str, phone: str, tenant: str, password: str) -> Tuple[bool, Optional[User], Optional[str], Optional[str]]:
         """

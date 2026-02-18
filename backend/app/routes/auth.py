@@ -3,6 +3,7 @@ Authentication routes for LuckyVista.
 """
 from flask import Blueprint, request, jsonify, session, current_app
 from app import limiter
+from app.models import User
 from app.services.auth_service import AuthenticationService
 from app.services.audit_service import AuditService
 
@@ -118,8 +119,8 @@ def signin():
                 'error': error_msg or 'Authentication failed'
             }), 401
         
-        # Create session
-        session_id = auth_service.create_session(user)
+        # Generate JWT token
+        token = auth_service.generate_token(user)
         
         # Log successful authentication
         audit_service.log_authentication(email, True, user.id, user.tenant)
@@ -127,25 +128,13 @@ def signin():
         # Determine redirect based on role
         redirect_url = '/admin/dashboard' if user.is_admin() else '/feedback'
         
-        response = jsonify({
+        return jsonify({
             'success': True,
             'message': 'Sign-in successful',
+            'token': token,
             'user': user.to_dict(),
             'redirect': redirect_url
-        })
-        
-        # Explicitly set session cookie in response
-        response.set_cookie(
-            'luckyvista_session',
-            session_id,
-            httponly=True,
-            secure=True,
-            samesite='None',
-            max_age=1800,
-            path='/'
-        )
-        
-        return response, 200
+        }), 200
     
     except Exception as e:
         current_app.logger.error(f"Signin error: {str(e)}")
@@ -303,15 +292,36 @@ def password_reset():
 @bp.route('/session', methods=['GET'])
 def check_session():
     """
-    Check current session status.
+    Check current session status using JWT token.
     
     Returns:
         JSON response with session status and user data
     """
     try:
-        is_valid, user = auth_service.validate_session()
+        # Get token from Authorization header
+        auth_header = request.headers.get('Authorization')
+        
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({
+                'success': False,
+                'authenticated': False
+            }), 401
+        
+        token = auth_header.split(' ')[1]
+        
+        # Verify token
+        is_valid, payload = auth_service.verify_token(token)
         
         if not is_valid:
+            return jsonify({
+                'success': False,
+                'authenticated': False
+            }), 401
+        
+        # Get user from database
+        user = User.query.get(payload['user_id'])
+        
+        if not user:
             return jsonify({
                 'success': False,
                 'authenticated': False
@@ -324,7 +334,8 @@ def check_session():
         }), 200
     
     except Exception as e:
+        current_app.logger.error(f"Session check error: {str(e)}")
         return jsonify({
             'success': False,
-            'error': 'Session check failed'
-        }), 500
+            'authenticated': False
+        }), 401

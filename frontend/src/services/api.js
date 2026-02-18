@@ -6,16 +6,22 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true, // Important for session cookies
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor for logging
+// Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
     console.log(`API Request: ${config.method.toUpperCase()} ${config.url}`);
+    
+    // Add auth token to requests
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
     return config;
   },
   (error) => {
@@ -35,7 +41,8 @@ api.interceptors.response.use(
       
       // Handle 401 Unauthorized
       if (error.response.status === 401) {
-        // Redirect to login if not already there
+        // Clear token and redirect to login
+        localStorage.removeItem('auth_token');
         if (!window.location.pathname.includes('/login')) {
           window.location.href = '/login';
         }
@@ -62,11 +69,20 @@ export const authAPI = {
   // Sign in user
   signin: async (credentials) => {
     const response = await api.post('/auth/signin', credentials);
+    
+    // Store the token in localStorage
+    if (response.data.token) {
+      localStorage.setItem('auth_token', response.data.token);
+    }
+    
     return response.data;
   },
 
   // Sign out user
   signout: async () => {
+    // Clear token from localStorage
+    localStorage.removeItem('auth_token');
+    
     const response = await api.post('/auth/signout');
     return response.data;
   },
