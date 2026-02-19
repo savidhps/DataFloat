@@ -59,6 +59,36 @@ luckyvista/
 └── README.md
 ```
 
+## Quick Start (Local Development)
+
+### Prerequisites
+- Python 3.11+ (Python 3.14 works)
+- Node.js 16+
+- Git
+
+### Step-by-Step
+
+1. **Clone and setup backend**
+   ```bash
+   git clone <repository-url>
+   cd DataFloat/backend
+   python -m pip install Flask Flask-SQLAlchemy Flask-Limiter Flask-CORS python-dotenv bcrypt WTForms email-validator pandas scikit-learn gunicorn PyJWT
+   python init_db.py
+   python wsgi.py
+   ```
+
+2. **In a new terminal, setup frontend**
+   ```bash
+   cd DataFloat/frontend
+   npm install
+   npm run dev
+   ```
+
+3. **Access the app**
+   - Frontend: `http://localhost:5173`
+   - Backend API: `http://localhost:5000/api/health`
+   - Admin login: `admin@gmail.com` / `admin123`
+
 ## Installation
 
 ### Prerequisites
@@ -73,30 +103,27 @@ luckyvista/
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd luckyvista
+   cd DataFloat
    ```
 
-2. **Create virtual environment**
+2. **Navigate to backend directory**
    ```bash
    cd backend
-   python -m venv venv
-   
-   # Windows
-   venv\Scripts\activate
-   
-   # macOS/Linux
-   source venv/bin/activate
    ```
 
-3. **Install dependencies**
+3. **Install Python dependencies**
    ```bash
-   pip install -r requirements.txt
+   # Install required packages
+   python -m pip install Flask Flask-SQLAlchemy Flask-Limiter Flask-CORS python-dotenv bcrypt WTForms email-validator pandas scikit-learn gunicorn PyJWT
    ```
+   
+   **Note**: If you encounter numpy installation issues on Windows, you may need to install Visual Studio Build Tools or use a pre-built wheel.
 
-4. **Configure environment**
+4. **Configure environment** (optional)
    ```bash
+   # Copy example env file
    cp .env.example .env
-   # Edit .env with your settings (optional)
+   # Edit .env with your settings if needed
    ```
 
 5. **Initialize database**
@@ -107,34 +134,73 @@ luckyvista/
    - Email: `admin@gmail.com`
    - Password: `admin123`
 
-6. **Train ML model** (optional - pre-trained model included)
+6. **Verify ML model** (pre-trained model included)
+   The repository includes pre-trained emotion detection models:
+   - `models/sentiment_model.pkl` - Trained ML model (92.26% accuracy)
+   - `models/vectorizer.pkl` - TF-IDF vectorizer
+   - `data/EmotionDetection.csv` - Training dataset (839,555 samples)
+   
+   To retrain the model (optional):
    ```bash
    python train_emotion_model.py
    ```
 
 7. **Run backend server**
    ```bash
-   python app.py
+   python wsgi.py
    ```
    Backend runs on `http://localhost:5000`
+   
+   You should see:
+   ```
+   * Running on http://127.0.0.1:5000
+   * Running on http://192.168.x.x:5000
+   ```
 
 ### Frontend Setup
 
-1. **Navigate to frontend directory**
+1. **Open a new terminal** (keep backend running)
+
+2. **Navigate to frontend directory**
    ```bash
    cd frontend
    ```
 
-2. **Install dependencies**
+3. **Install dependencies**
    ```bash
    npm install
    ```
 
-3. **Run development server**
+4. **Configure API URL** (for local development)
+   The frontend is already configured to use `http://localhost:5000/api` via Vite proxy.
+   
+   If you need to change it, edit `vite.config.js`:
+   ```javascript
+   server: {
+     proxy: {
+       '/api': 'http://localhost:5000'
+     }
+   }
+   ```
+
+5. **Run development server**
    ```bash
    npm run dev
    ```
    Frontend runs on `http://localhost:5173`
+   
+   You should see:
+   ```
+   VITE v5.x.x  ready in xxx ms
+   ➜  Local:   http://localhost:5173/
+   ➜  Network: http://192.168.x.x:5173/
+   ```
+
+6. **Access the application**
+   - Open browser to `http://localhost:5173`
+   - Login with admin credentials:
+     - Email: `admin@gmail.com`
+     - Password: `admin123`
 
 ## Usage
 
@@ -192,18 +258,22 @@ The platform uses a machine learning model trained on 839,555 samples to detect 
 
 ### Authentication
 - `POST /api/auth/signup` - Register new user
-- `POST /api/auth/signin` - User login
+- `POST /api/auth/signin` - User login (returns JWT token)
 - `POST /api/auth/signout` - User logout
+- `GET /api/auth/session` - Check session status
 
 ### Feedback
-- `POST /api/feedback` - Submit feedback
-- `GET /api/feedback/my-submissions` - Get user's feedback
+- `POST /api/feedback` - Submit feedback (requires JWT token)
+- `GET /api/feedback/my-submissions` - Get user's feedback (requires JWT token)
 
-### Admin (requires admin role)
+### Admin (requires admin role + JWT token)
 - `GET /api/admin/metrics` - Platform metrics
 - `GET /api/admin/feedback` - All feedback
 - `GET /api/admin/sentiment-distribution` - Emotion distribution
 - `GET /api/admin/rating-breakdown` - Rating statistics
+
+### Health Check
+- `GET /api/health` - Service health status
 
 ## Deployment
 
@@ -286,7 +356,7 @@ server: {
 ## Security Features
 
 - **Password Hashing**: Bcrypt with salt
-- **Session Management**: Secure Flask sessions
+- **JWT Authentication**: Token-based authentication for cross-domain support
 - **Rate Limiting**: API endpoint protection
 - **Input Validation**: Comprehensive validation on all inputs
 - **SQL Injection Prevention**: SQLAlchemy ORM
