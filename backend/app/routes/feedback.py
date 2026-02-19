@@ -44,6 +44,12 @@ def require_authentication():
     
     # Store user in request context for use in route handlers
     request.current_user = user
+    
+    # Temporarily set session for legacy service methods
+    session['user_id'] = user.id
+    session['tenant_id'] = user.tenant
+    session['role'] = user.role
+    
     return None
 
 
@@ -138,7 +144,11 @@ def get_my_submissions():
         return auth_error
     
     try:
-        feedback_list = feedback_service.get_user_feedback()
+        feedback_list = feedback_service.get_user_feedback(
+            user_id=request.current_user.id,
+            tenant_id=request.current_user.tenant,
+            is_admin=request.current_user.is_admin()
+        )
         
         return jsonify({
             'success': True,

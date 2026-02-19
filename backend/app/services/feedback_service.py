@@ -96,32 +96,27 @@ class FeedbackService:
             current_app.logger.error(f"Feedback submission failed: {str(e)}")
             return False, None, 'Feedback submission failed', None
     
-    def get_user_feedback(self, user_id: Optional[int] = None) -> List[Feedback]:
+    def get_user_feedback(self, user_id: int, tenant_id: str, is_admin: bool = False) -> List[Feedback]:
         """
         Get feedback submissions for a specific user with tenant filtering.
         
         Args:
-            user_id: User ID (uses session user if not provided)
+            user_id: User ID
+            tenant_id: Tenant identifier
+            is_admin: Whether the user is an admin
         
         Returns:
             List of feedback objects
         """
         try:
-            # Use session user if not provided
-            if user_id is None:
-                user_id = session.get('user_id')
-            
             if not user_id:
                 return []
-            
-            # Get tenant from session for filtering
-            tenant_id = session.get('tenant_id')
             
             # Build query with tenant filtering
             query = Feedback.query.filter_by(user_id=user_id)
             
             # Apply tenant filtering (admin can see all)
-            if not self.tenant_service.is_admin():
+            if not is_admin:
                 if not tenant_id:
                     return []
                 query = query.filter_by(tenant=tenant_id)

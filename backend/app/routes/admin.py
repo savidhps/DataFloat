@@ -57,6 +57,12 @@ def require_admin():
     
     # Store user in request context
     request.current_user = user
+    
+    # Temporarily set session for legacy service methods
+    session['user_id'] = user.id
+    session['tenant_id'] = user.tenant
+    session['role'] = user.role
+    
     return None
 
 
