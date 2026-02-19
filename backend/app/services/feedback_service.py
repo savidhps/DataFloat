@@ -209,7 +209,7 @@ class FeedbackService:
         
         Args:
             feedback_id: Feedback ID
-            sentiment_label: Sentiment label (Positive, Negative, Neutral)
+            sentiment_label: Sentiment label (13 emotions or Unclassified)
             confidence: Optional confidence score
         
         Returns:
@@ -221,8 +221,12 @@ class FeedbackService:
             if not feedback:
                 return False
             
-            # Validate sentiment label
-            valid_sentiments = ['Positive', 'Negative', 'Neutral', 'Unclassified']
+            # Validate sentiment label - support all 13 emotions from ML model
+            valid_sentiments = [
+                'Love', 'Happiness', 'Fun', 'Enthusiasm', 'Relief',
+                'Anger', 'Hate', 'Sadness', 'Worry', 'Empty',
+                'Surprise', 'Boredom', 'Neutral', 'Unclassified'
+            ]
             if sentiment_label not in valid_sentiments:
                 return False
             
