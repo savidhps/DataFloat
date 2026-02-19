@@ -48,9 +48,6 @@ flask_session/
 .DS_Store
 Thumbs.db
 
-# Models
-models/*.pkl
-
 # Logs
 *.log
 logs/
