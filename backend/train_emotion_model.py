@@ -32,9 +32,32 @@ def main():
     print("Training on ALL 13 emotions from EmotionDetection.csv")
     print("=" * 70)
     
+    # Get the directory where this script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    data_path = os.path.join(script_dir, 'data', 'EmotionDetection.csv')
+    
+    # Debug information
+    print(f"\n🔍 DEBUG INFORMATION:")
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Script directory: {script_dir}")
+    print(f"Data path: {data_path}")
+    print(f"Data file exists: {os.path.exists(data_path)}")
+    
     # Load dataset
-    print("\nLoading dataset...")
-    df = pd.read_csv('data/EmotionDetection.csv')
+    print(f"\nLoading dataset from: {data_path}")
+    if not os.path.exists(data_path):
+        print(f"❌ ERROR: Dataset file not found at {data_path}")
+        print(f"\nListing files in script directory:")
+        for root, dirs, files in os.walk(script_dir):
+            level = root.replace(script_dir, '').count(os.sep)
+            indent = ' ' * 2 * level
+            print(f"{indent}{os.path.basename(root)}/")
+            subindent = ' ' * 2 * (level + 1)
+            for file in files[:10]:  # Limit to first 10 files per directory
+                print(f"{subindent}{file}")
+        return
+    
+    df = pd.read_csv(data_path)
     
     print(f"Total samples: {len(df)}")
     print(f"Columns: {df.columns.tolist()}")
@@ -105,10 +128,11 @@ def main():
     print(f"Classes: {', '.join(sorted(model.classes_))}")
     
     # Save model
-    os.makedirs('models', exist_ok=True)
+    models_dir = os.path.join(script_dir, 'models')
+    os.makedirs(models_dir, exist_ok=True)
     
-    model_path = 'models/sentiment_model.pkl'
-    vectorizer_path = 'models/vectorizer.pkl'
+    model_path = os.path.join(models_dir, 'sentiment_model.pkl')
+    vectorizer_path = os.path.join(models_dir, 'vectorizer.pkl')
     
     print(f"\nSaving model to {model_path}...")
     with open(model_path, 'wb') as f:
