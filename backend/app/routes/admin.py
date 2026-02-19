@@ -3,12 +3,12 @@ Admin routes for LuckyVista.
 """
 from flask import Blueprint, request, jsonify, session
 from app import limiter
+from app.models import User, Feedback
 from app.services.analytics_service import AnalyticsService
 from app.services.feedback_service import FeedbackService
 from app.services.auth_service import AuthenticationService
 from app.services.tenant_service import TenantIsolationService
 from app.services.audit_service import AuditService
-from app.models import User, Feedback
 from datetime import datetime
 import csv
 import io
@@ -23,12 +23,30 @@ audit_service = AuditService()
 
 
 def require_admin():
-    """Check if user is authenticated and has admin role."""
-    is_valid, user = auth_service.validate_session()
-    if not is_valid:
+    """Check if user is authenticated and has admin role using JWT token."""
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith('Bearer '):
         return jsonify({
             'success': False,
             'error': 'Authentication required'
+        }), 401
+    
+    token = auth_header.split(' ')[1]
+    is_valid, payload = auth_service.verify_token(token)
+    
+    if not is_valid:
+        return jsonify({
+            'success': False,
+            'error': 'Invalid or expired token'
+        }), 401
+    
+    # Get user from database
+    user = User.query.get(payload['user_id'])
+    if not user:
+        return jsonify({
+            'success': False,
+            'error': 'User not found'
         }), 401
     
     if not user.is_admin():
@@ -37,6 +55,8 @@ def require_admin():
             'error': 'Admin access required'
         }), 403
     
+    # Store user in request context
+    request.current_user = user
     return None
 
 

@@ -22,6 +22,8 @@ class FeedbackService:
     
     def submit_feedback(
         self,
+        user_id: int,
+        tenant_id: str,
         overall_rating: int,
         experience_rating: int,
         comments: str,
@@ -34,6 +36,8 @@ class FeedbackService:
         Submit feedback with validation and tenant association.
         
         Args:
+            user_id: ID of the user submitting feedback
+            tenant_id: Tenant identifier
             overall_rating: Overall rating (1-5)
             experience_rating: Experience rating (1-5)
             comments: Feedback comments (minimum 10 characters)
@@ -46,12 +50,9 @@ class FeedbackService:
             Tuple of (success, feedback_object, error_message, field_name)
         """
         try:
-            # Get user and tenant from session
-            user_id = session.get('user_id')
-            tenant_id = session.get('tenant_id')
-            
+            # Use provided user_id and tenant_id instead of session
             if not user_id or not tenant_id:
-                return False, None, 'User not authenticated', None
+                return False, None, 'User authentication required', None
             
             # Validate required fields
             validation_result = self._validate_feedback_data(

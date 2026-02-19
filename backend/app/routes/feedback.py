@@ -3,6 +3,7 @@ Feedback routes for LuckyVista.
 """
 from flask import Blueprint, request, jsonify, session
 from app import limiter
+from app.models import User
 from app.services.feedback_service import FeedbackService
 from app.services.auth_service import AuthenticationService
 from app.services.audit_service import AuditService
@@ -15,13 +16,34 @@ audit_service = AuditService()
 
 
 def require_authentication():
-    """Check if user is authenticated."""
-    is_valid, user = auth_service.validate_session()
-    if not is_valid:
+    """Check if user is authenticated using JWT token."""
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith('Bearer '):
         return jsonify({
             'success': False,
             'error': 'Authentication required'
         }), 401
+    
+    token = auth_header.split(' ')[1]
+    is_valid, payload = auth_service.verify_token(token)
+    
+    if not is_valid:
+        return jsonify({
+            'success': False,
+            'error': 'Invalid or expired token'
+        }), 401
+    
+    # Get user from database
+    user = User.query.get(payload['user_id'])
+    if not user:
+        return jsonify({
+            'success': False,
+            'error': 'User not found'
+        }), 401
+    
+    # Store user in request context for use in route handlers
+    request.current_user = user
     return None
 
 
@@ -70,6 +92,8 @@ def submit_feedback():
         
         # Submit feedback
         success, feedback, error_msg, field = feedback_service.submit_feedback(
+            user_id=request.current_user.id,
+            tenant_id=request.current_user.tenant,
             overall_rating=overall_rating,
             experience_rating=experience_rating,
             comments=comments,
