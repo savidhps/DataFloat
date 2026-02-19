@@ -136,11 +136,11 @@ def main():
     
     print(f"\nSaving model to {model_path}...")
     with open(model_path, 'wb') as f:
-        pickle.dump(model, f)
+        pickle.dump(model, f, protocol=4)  # Use protocol 4 for better compatibility
     
     print(f"Saving vectorizer to {vectorizer_path}...")
     with open(vectorizer_path, 'wb') as f:
-        pickle.dump(vectorizer, f)
+        pickle.dump(vectorizer, f, protocol=4)  # Use protocol 4 for better compatibility
     
     # Test with sample texts
     print("\n" + "=" * 70)
